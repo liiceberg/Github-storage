@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">GitHub</string>
+
+    <string name="main_page_title">GitHub</string>
+    <string name="settings_page_title">Настройки</string>
+
+    <string name="repository">Репозиторий</string>
+    <string name="folder">Папка</string>
+    <string name="access">Access</string>
+
+    <string name="main_page_access_text">Активен до %s</string>
+    <string name="main_page_last_history">Последнее</string>
+    <string name="settings_page_access_last_date">Дата истечения access</string>
+
+    <string name="push_btn">Отправить</string>
+    <string name="pull_btn">Получить</string>
+    <string name="save_btn">Сохранить</string>
+
+    <string name="git_pull">git pull</string>
+    <string name="git_commit">git commit</string>
+
+    <string name="main_label">Main</string>
+    <string name="settings_label">Settings</string>
+
+    <string name="repository_error">Репозиторий не найден</string>
+    <string name="folder_path_error">Некорректный путь</string>
+    <string name="access_error">Некорректный токен</string>
+
+
+</resources>
