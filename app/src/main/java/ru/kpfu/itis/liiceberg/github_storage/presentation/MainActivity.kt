@@ -9,8 +9,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.BottomNavigationBar
 import ru.kpfu.itis.liiceberg.github_storage.presentation.navigation.NavHostContainer
+import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.BottomNavigationBar
 import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.GithubstorageTheme
 
 @AndroidEntryPoint

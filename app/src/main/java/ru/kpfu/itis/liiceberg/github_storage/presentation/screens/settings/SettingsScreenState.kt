@@ -11,4 +11,5 @@ data class SettingsScreenState(
     val repositoryNotValid: Boolean = false,
     val folderPathNotValid: Boolean = false,
     val accessNotValid: Boolean = false,
+    val showDatePickerDialog: Boolean = false,
 ) : UiState

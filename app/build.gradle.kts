@@ -20,6 +20,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "BASE_URL", "\"\"")
     }
 
     buildTypes {
@@ -40,6 +41,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -65,6 +67,10 @@ dependencies {
     implementation(libs.androidx.hilt)
     implementation(libs.androidx.lifecycle.runtime.compose.android)
     implementation(libs.hilt.android)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp3.logging.interceptor)
+    implementation(libs.androidx.datastore)
     kapt(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
