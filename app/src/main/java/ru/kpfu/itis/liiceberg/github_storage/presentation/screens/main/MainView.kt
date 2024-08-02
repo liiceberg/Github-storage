@@ -1,6 +1,5 @@
 package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.main
 
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,9 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.kpfu.itis.liiceberg.github_storage.R
-import ru.kpfu.itis.liiceberg.github_storage.util.formatDate
-import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.JetTopAppBar
 import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.GithubstorageTheme
+import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.JetTopAppBar
+import ru.kpfu.itis.liiceberg.github_storage.util.formatDate
 import java.time.LocalDate
 
 @Preview(showBackground = true, device = Devices.PIXEL_7)
@@ -57,7 +56,7 @@ fun MainView(
     MainView(
         repository = state.repository,
         folderPath = state.folderPath,
-        accessActiveDate = state.accessDate ?: LocalDate.now(),
+        accessActiveDate = state.accessDate,
         onPull = { viewModel.obtainEvent(MainScreenEvent.OnPullClicked) },
         onPush = { viewModel.obtainEvent(MainScreenEvent.OnPushClicked) },
         history = state.history,
@@ -70,7 +69,7 @@ fun MainView(
 private fun MainView(
     repository: String,
     folderPath: String,
-    accessActiveDate: LocalDate,
+    accessActiveDate: LocalDate?,
     onPull: () -> Unit,
     onPush: () -> Unit,
     history: List<GitHubActionItem>,
@@ -106,7 +105,7 @@ private fun MainView(
 private fun InfoContainer(
     repository: String,
     folderPath: String,
-    accessDate: LocalDate,
+    accessDate: LocalDate?,
     onPull: () -> Unit,
     onPush: () -> Unit,
     pullLoading: Boolean,
@@ -124,9 +123,9 @@ private fun InfoContainer(
         InfoContainerItem(
             title = stringResource(id = R.string.access),
             text = stringResource(
-                id = R.string.main_page_access_text, accessDate.formatDate()
+                id = R.string.main_page_access_text, accessDate?.formatDate() ?: ""
             ),
-            access = accessDate.isBefore(LocalDate.now().plusDays(1))
+            access = accessDate?.isBefore(LocalDate.now())?.not()
         )
         Row(
             modifier = Modifier

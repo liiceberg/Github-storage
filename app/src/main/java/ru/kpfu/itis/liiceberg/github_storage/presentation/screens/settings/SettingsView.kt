@@ -131,7 +131,7 @@ private fun SettingsView(
             )
         }
         JetDatePickerDialog(showDatePicker, onDateSelected, onDatePickerDismissed)
-        val enableSaveButton = (repositoryNotValid && folderPathNotValid && accessNotValid).not() &&
+        val enableSaveButton = (repositoryNotValid || folderPathNotValid || accessNotValid).not() &&
                 (repository.isNotEmpty() && folderPath.isNotEmpty() && access.isNotEmpty())
         Button(
             onClick = { onSave.invoke() },

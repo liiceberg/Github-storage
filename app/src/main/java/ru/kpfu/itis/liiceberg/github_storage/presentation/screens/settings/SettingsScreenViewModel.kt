@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ru.kpfu.itis.liiceberg.github_storage.data.model.AccessToken
-import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.CheckFolderPathUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetFolderUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetRepositoryUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetTokenUseCase
@@ -12,12 +11,14 @@ import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.SaveFolderUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.SaveRepositoryUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.SaveTokenUseCase
 import ru.kpfu.itis.liiceberg.github_storage.presentation.base.BaseViewModel
+import ru.kpfu.itis.liiceberg.github_storage.util.FOLDER_PATH_PATTERN
+import ru.kpfu.itis.liiceberg.github_storage.util.GITHUB_API_ACCESS_TOKEN_PATTERN
+import ru.kpfu.itis.liiceberg.github_storage.util.GITHUB_URL_PATTERN
 import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsScreenViewModel @Inject constructor(
-    private val pathValidator: CheckFolderPathUseCase,
     private val getRepositoryUseCase: GetRepositoryUseCase,
     private val getFolderUseCase: GetFolderUseCase,
     private val saveRepositoryUseCase: SaveRepositoryUseCase,
@@ -36,19 +37,19 @@ class SettingsScreenViewModel @Inject constructor(
         when (event) {
             is SettingsScreenEvent.OnRepositoryFilled -> {
                 val value = event.repository
-                val isValid = true
+                val isValid = value.matches(GITHUB_URL_PATTERN.toRegex())
                 viewState = viewState.copy(repository = value, repositoryNotValid = isValid.not())
             }
 
             is SettingsScreenEvent.OnFolderFilled -> {
                 val value = event.path
-                val isValid = pathValidator.invoke(value)
+                val isValid = value.matches(FOLDER_PATH_PATTERN.toRegex())
                 viewState = viewState.copy(folderPath = value, folderPathNotValid = isValid.not())
             }
 
             is SettingsScreenEvent.OnAccessFilled -> {
                 val value = event.access
-                val isValid = true
+                val isValid = value.matches(GITHUB_API_ACCESS_TOKEN_PATTERN.toRegex())
                 viewState = viewState.copy(access = value, accessNotValid = isValid.not())
             }
 

@@ -22,9 +22,10 @@
     <string name="main_label">Main</string>
     <string name="settings_label">Settings</string>
 
-    <string name="repository_error">Репозиторий не найден</string>
-    <string name="folder_path_error">Некорректный путь</string>
-    <string name="access_error">Некорректный токен</string>
+    <string name="repository_error">Некорректная ссылка на Git репозиторий</string>
+    <string name="folder_path_error">Путь не соответствует файловой системе устройства</string>
+    <string name="access_error">Токен введен некорректно</string>
 
+    <string name="success_text">Данные сохранены</string>
 
 </resources>

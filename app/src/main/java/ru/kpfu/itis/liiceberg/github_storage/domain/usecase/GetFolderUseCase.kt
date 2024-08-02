@@ -9,9 +9,13 @@ class GetFolderUseCase @Inject constructor(
     private val dispatcher: CoroutineDispatcher,
     private val repository: SystemFilesRepository
 ) {
-    suspend operator fun invoke() : String {
+    suspend operator fun invoke(absolute: Boolean = false): String {
         return withContext(dispatcher) {
-            repository.getFolderPath()
+            if (absolute) {
+                repository.getAbsoluteRootFilePath()
+            } else {
+                repository.getRootFolderPath()
+            }
         }
     }
 }
