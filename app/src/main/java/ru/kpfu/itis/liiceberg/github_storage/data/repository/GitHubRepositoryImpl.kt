@@ -5,9 +5,9 @@ import androidx.datastore.preferences.Preferences
 import androidx.datastore.preferences.edit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import ru.kpfu.itis.liiceberg.github_storage.data.model.GitHubTree
-import ru.kpfu.itis.liiceberg.github_storage.data.model.NodeType
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.GitHubApi
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitHubTree
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.NodeType
 import ru.kpfu.itis.liiceberg.github_storage.domain.repository.GitHubRepository
 import ru.kpfu.itis.liiceberg.github_storage.domain.repository.SystemFilesRepository
 import ru.kpfu.itis.liiceberg.github_storage.util.PrefsKeys
@@ -39,6 +39,11 @@ class GitHubRepositoryImpl @Inject constructor(
         if (owner.isNullOrEmpty() || repository.isNullOrEmpty()) return
 
         val tree = gitHubApi.getAllFiles(owner!!, repository!!)
+
+        filesRepository.saveAll(
+            tree.tree.map { node -> node.path }.toSet()
+        )
+
         performTreeTraversal(tree)
     }
 

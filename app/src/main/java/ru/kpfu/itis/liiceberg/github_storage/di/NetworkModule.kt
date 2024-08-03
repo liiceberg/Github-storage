@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 import ru.kpfu.itis.liiceberg.github_storage.BuildConfig
-import ru.kpfu.itis.liiceberg.github_storage.data.interceptor.AccessTokenInterceptor
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.interceptor.AccessTokenInterceptor
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.GitHubApi
 
 @Module

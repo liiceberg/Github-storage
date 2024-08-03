@@ -6,8 +6,8 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.Url
-import ru.kpfu.itis.liiceberg.github_storage.data.model.GitHubFile
-import ru.kpfu.itis.liiceberg.github_storage.data.model.GitHubTree
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitHubFile
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitHubTree
 
 interface GitHubApi {
 

@@ -12,7 +12,7 @@ class GetFolderUseCase @Inject constructor(
     suspend operator fun invoke(absolute: Boolean = false): String {
         return withContext(dispatcher) {
             if (absolute) {
-                repository.getAbsoluteRootFilePath()
+                repository.getRootFileAbsolutePath()
             } else {
                 repository.getRootFolderPath()
             }

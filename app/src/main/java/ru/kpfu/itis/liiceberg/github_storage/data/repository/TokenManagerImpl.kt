@@ -5,7 +5,7 @@ import androidx.datastore.preferences.Preferences
 import androidx.datastore.preferences.edit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import ru.kpfu.itis.liiceberg.github_storage.data.model.AccessToken
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.AccessToken
 import ru.kpfu.itis.liiceberg.github_storage.domain.repository.TokenManager
 import ru.kpfu.itis.liiceberg.github_storage.util.PrefsKeys
 import java.time.LocalDate

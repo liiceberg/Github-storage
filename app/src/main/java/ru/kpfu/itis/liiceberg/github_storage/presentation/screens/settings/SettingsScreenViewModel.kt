@@ -3,7 +3,7 @@ package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.settings
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import ru.kpfu.itis.liiceberg.github_storage.data.model.AccessToken
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.AccessToken
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetFolderUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetRepositoryUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetTokenUseCase

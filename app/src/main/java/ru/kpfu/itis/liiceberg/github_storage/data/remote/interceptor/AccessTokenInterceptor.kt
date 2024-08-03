@@ -1,4 +1,4 @@
-package ru.kpfu.itis.liiceberg.github_storage.data.interceptor
+package ru.kpfu.itis.liiceberg.github_storage.data.remote.interceptor
 
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor

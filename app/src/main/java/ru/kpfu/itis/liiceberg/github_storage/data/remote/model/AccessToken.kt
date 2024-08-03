@@ -1,4 +1,4 @@
-package ru.kpfu.itis.liiceberg.github_storage.data.model
+package ru.kpfu.itis.liiceberg.github_storage.data.remote.model
 
 import java.time.LocalDate
 
