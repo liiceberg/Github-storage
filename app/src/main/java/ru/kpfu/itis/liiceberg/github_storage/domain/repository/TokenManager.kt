@@ -1,6 +1,6 @@
 package ru.kpfu.itis.liiceberg.github_storage.domain.repository
 
-import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.AccessToken
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.AccessToken
 
 interface TokenManager {
     suspend fun getAccessToken() : AccessToken?

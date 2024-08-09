@@ -1,4 +1,4 @@
-package ru.kpfu.itis.liiceberg.github_storage.data.remote.model
+package ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.response
 
 import com.google.gson.annotations.SerializedName
 

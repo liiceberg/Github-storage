@@ -14,7 +14,7 @@ class GetFolderUseCase @Inject constructor(
             if (absolute) {
                 repository.getRootFileAbsolutePath()
             } else {
-                repository.getRootFolderPath()
+                repository.getRootFolderRelativePath()
             }
         }
     }

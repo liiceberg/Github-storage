@@ -1,4 +1,4 @@
-package ru.kpfu.itis.liiceberg.github_storage.data.remote.model
+package ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.response
 
 import com.google.gson.annotations.SerializedName
 
@@ -18,9 +18,13 @@ data class GitHubTreeNode(
     val url: String
 )
 
-enum class NodeType {
+enum class NodeType(val mode: String) {
+
     @SerializedName("blob")
-    BLOB,
+    BLOB("100644"),
     @SerializedName("tree")
-    TREE
+    TREE("040000");
+
+    override fun toString(): String = name.lowercase()
+
 }

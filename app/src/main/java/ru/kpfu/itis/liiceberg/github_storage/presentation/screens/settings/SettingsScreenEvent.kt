@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 sealed interface SettingsScreenEvent : UiEvent {
     data class OnRepositoryFilled(val repository: String) : SettingsScreenEvent
-    data class OnFolderFilled(val path: String) : SettingsScreenEvent
+    data class OnFolderFilled(val uri: String) : SettingsScreenEvent
     data class OnAccessFilled(val access: String) : SettingsScreenEvent
     data class OnDateSelected(val date: LocalDate) : SettingsScreenEvent
     data object OnDatePickerDismissed : SettingsScreenEvent

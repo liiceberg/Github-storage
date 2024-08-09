@@ -9,7 +9,6 @@ data class SettingsScreenState(
     val access: String = "",
     val accessActiveDate: LocalDate? = null,
     val repositoryNotValid: Boolean = false,
-    val folderPathNotValid: Boolean = false,
     val accessNotValid: Boolean = false,
     val showDatePickerDialog: Boolean = false,
 ) : UiState

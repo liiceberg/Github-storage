@@ -27,5 +27,6 @@
     <string name="access_error">Токен введен некорректно</string>
 
     <string name="success_text">Данные сохранены</string>
+    <string name="permission_denied">Требуется разрашение на чтение и запись файлов</string>
 
 </resources>

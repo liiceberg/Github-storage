@@ -2,12 +2,12 @@ package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.main
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetFolderUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetRepositoryUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetTokenUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GitHubPullUseCase
+import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GitHubPushUseCase
 import ru.kpfu.itis.liiceberg.github_storage.presentation.base.BaseViewModel
 import javax.inject.Inject
 
@@ -16,7 +16,8 @@ class MainScreenViewModel @Inject constructor(
     private val getRepositoryUseCase: GetRepositoryUseCase,
     private val getFolderUseCase: GetFolderUseCase,
     private val getTokenUseCase: GetTokenUseCase,
-    private val gitHubPullUseCase: GitHubPullUseCase
+    private val gitHubPullUseCase: GitHubPullUseCase,
+    private val gitHubPushUseCase: GitHubPushUseCase,
 ) : BaseViewModel<MainScreenState, MainScreenEvent, MainScreenAction>(
     MainScreenState()
 ) {
@@ -45,7 +46,7 @@ class MainScreenViewModel @Inject constructor(
     private fun push() {
         viewModelScope.launch {
             viewState = viewState.copy(pushLoading = true)
-            delay(5000L)
+            gitHubPushUseCase.invoke()
             viewState = viewState.copy(pushLoading = false)
         }
     }

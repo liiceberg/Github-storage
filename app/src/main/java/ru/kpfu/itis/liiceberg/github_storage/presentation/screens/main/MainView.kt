@@ -1,5 +1,17 @@
 package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.main
 
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.Settings
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -31,6 +44,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.kpfu.itis.liiceberg.github_storage.R
@@ -38,6 +52,7 @@ import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.GithubstorageThe
 import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.JetTopAppBar
 import ru.kpfu.itis.liiceberg.github_storage.util.formatDate
 import java.time.LocalDate
+
 
 @Preview(showBackground = true, device = Devices.PIXEL_7)
 @Composable
@@ -186,8 +201,31 @@ private fun JetButton(
     onButtonClick: () -> Unit,
     isLoad: Boolean
 ) {
+    val ctx = LocalContext.current
+    val permissionDeniedText = stringResource(id = R.string.permission_denied)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (hasWriteStoragePermission(ctx)) {
+            onButtonClick.invoke()
+        } else {
+            Toast.makeText(ctx, permissionDeniedText, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Button(
-        onClick = { onButtonClick.invoke() },
+        onClick = {
+            if (hasWriteStoragePermission(ctx)) {
+                onButtonClick.invoke()
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    requestPermission(ctx)
+                } else {
+                    permissionLauncher.launch(WRITE_EXTERNAL_STORAGE)
+                }
+
+            }
+        },
         modifier = Modifier.fillMaxWidth(),
         enabled = isLoad.not()
     ) {
@@ -272,4 +310,28 @@ private fun ActionHistoryItem(item: GitHubActionItem) {
         )
     }
     HorizontalDivider()
+}
+
+
+@SuppressLint("ObsoleteSdkInt")
+private fun hasWriteStoragePermission(ctx: Context): Boolean {
+    return when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> Environment.isExternalStorageManager()
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> true
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
+            ContextCompat.checkSelfPermission(
+                ctx,
+                WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+
+        else -> true
+    }
+}
+
+private fun requestPermission(context: Context) {
+    val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+    intent.addCategory("android.intent.category.DEFAULT")
+    intent.data = Uri.parse(String.format("package:%s", context.packageName))
+    context.startActivity(intent)
 }

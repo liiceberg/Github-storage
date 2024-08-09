@@ -1,5 +1,7 @@
 package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,7 +63,6 @@ private fun SettingsViewPreview() {
             {},
             false,
             false,
-            false,
             false
         )
     }
@@ -85,7 +86,6 @@ fun SettingsView(viewModel: SettingsScreenViewModel = hiltViewModel()) {
         onDatePickerCalled = { viewModel.obtainEvent(SettingsScreenEvent.OnDatePickerCalled) },
         onDatePickerDismissed = { viewModel.obtainEvent(SettingsScreenEvent.OnDatePickerDismissed) },
         repositoryNotValid = state.repositoryNotValid,
-        folderPathNotValid = state.folderPathNotValid,
         accessNotValid = state.accessNotValid,
         showDatePicker = state.showDatePickerDialog
     )
@@ -105,7 +105,6 @@ private fun SettingsView(
     onDatePickerCalled: () -> Unit,
     onDatePickerDismissed: () -> Unit,
     repositoryNotValid: Boolean,
-    folderPathNotValid: Boolean,
     accessNotValid: Boolean,
     showDatePicker: Boolean,
 ) {
@@ -122,7 +121,6 @@ private fun SettingsView(
                 repositoryNotValid,
                 folderPath,
                 onFolderPathFilled,
-                folderPathNotValid,
                 access,
                 onAccessFilled,
                 accessNotValid,
@@ -131,10 +129,14 @@ private fun SettingsView(
             )
         }
         JetDatePickerDialog(showDatePicker, onDateSelected, onDatePickerDismissed)
-        val enableSaveButton = (repositoryNotValid || folderPathNotValid || accessNotValid).not() &&
+        val enableSaveButton = (repositoryNotValid || accessNotValid).not() &&
                 (repository.isNotEmpty() && folderPath.isNotEmpty() && access.isNotEmpty())
+
+
         Button(
-            onClick = { onSave.invoke() },
+            onClick = {
+                onSave.invoke()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
@@ -152,7 +154,6 @@ private fun FieldsContainer(
     repositoryNotValid: Boolean,
     folderPath: String,
     onFolderPathFilled: (value: String) -> Unit,
-    folderPathNotValid: Boolean,
     access: String,
     onAccessFilled: (value: String) -> Unit,
     accessNotValid: Boolean,
@@ -173,13 +174,29 @@ private fun FieldsContainer(
             supportingText = stringResource(id = R.string.repository_error),
             keyboardType = KeyboardType.Uri
         )
+        val launcher =
+            rememberLauncherForActivityResult(contract = ActivityResultContracts.OpenDocumentTree()) { uri ->
+                uri?.path?.let { onFolderPathFilled.invoke(it) }
+            }
         Field(
             text = folderPath,
             hint = stringResource(id = R.string.folder),
-            onValueChange = onFolderPathFilled,
-            isError = folderPathNotValid,
-            supportingText = stringResource(id = R.string.folder_path_error),
-            keyboardType = KeyboardType.Uri
+            onValueChange = {},
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        launcher.launch(null)
+                    },
+                    content = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_edit_24),
+                            contentDescription = null,
+                            tint = Color.Unspecified
+                        )
+                    },
+                )
+            },
+            readOnly = true
         )
         Field(
             text = access,

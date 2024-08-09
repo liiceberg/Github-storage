@@ -1,5 +1,6 @@
 package ru.kpfu.itis.liiceberg.github_storage.di
 
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -43,7 +44,7 @@ class NetworkModule {
     fun provideGitHubApi(okHttpClient: OkHttpClient): GitHubApi {
         return Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().serializeNulls().create()))
             .client(okHttpClient)
             .build()
             .create(GitHubApi::class.java)
