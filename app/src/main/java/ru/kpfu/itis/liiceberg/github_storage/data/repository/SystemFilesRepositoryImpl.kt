@@ -6,8 +6,8 @@ import androidx.datastore.preferences.Preferences
 import androidx.datastore.preferences.edit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import ru.kpfu.itis.liiceberg.github_storage.data.local.dao.DirectoryRootDao
-import ru.kpfu.itis.liiceberg.github_storage.data.local.entity.DirectoryRootEntity
+import ru.kpfu.itis.liiceberg.github_storage.data.local.dao.FileDao
+import ru.kpfu.itis.liiceberg.github_storage.data.local.entity.FileEntity
 import ru.kpfu.itis.liiceberg.github_storage.domain.repository.SystemFilesRepository
 import ru.kpfu.itis.liiceberg.github_storage.util.PrefsKeys
 import java.io.File
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 class SystemFilesRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>,
-    private val directoryDao: DirectoryRootDao,
+    private val fileDao: FileDao,
 ) : SystemFilesRepository {
 
     override suspend fun getRoot(): File = File(getRootFileAbsolutePath())
@@ -39,21 +39,29 @@ class SystemFilesRepositoryImpl @Inject constructor(
     override suspend fun getFolderRelativePath(path: String): String {
         val rootPath = getRootFileAbsolutePath()
         return path.substring(rootPath.length + 1)
+
     }
 
-    override suspend fun saveAll(newFiles: Set<String>) {
+    override suspend fun getSavedFiles(): Set<String>? {
+        val root = getRootFileAbsolutePath()
+        return fileDao.getAll(root)?.map { it.path }?.toSet()
+    }
+
+    override suspend fun saveAll(newFiles: Map<String, String>) {
         val root = getRootFileAbsolutePath()
 
-        val last = lastCommitFiles()
+        val last = getSavedFiles()
 
         last?.forEach { file ->
-            if (newFiles.contains(file).not()) {
+            if (newFiles.keys.contains(file).not()) {
                 val deleteFile = "${getRootFileAbsolutePath()}${File.separator}$file"
                 File(deleteFile).deleteRecursively()
             }
         }
 
-        directoryDao.save(DirectoryRootEntity(location = root, files = newFiles))
+        newFiles.forEach { file ->
+            fileDao.save(FileEntity(directory = root, path = file.key, content = file.value))
+        }
     }
 
     override suspend fun saveFile(path: String, content: String?, isFolder: Boolean) {
@@ -74,14 +82,11 @@ class SystemFilesRepositoryImpl @Inject constructor(
 
     private fun saveFile(file: File, content: String?) {
         if (file.exists()) {
+
         } else {
             file.createNewFile().toString()
         }
         file.writeText(content ?: "")
     }
 
-    override suspend fun lastCommitFiles(): Set<String>? {
-        val root = getRootFileAbsolutePath()
-        return directoryDao.get(root)?.files
-    }
 }

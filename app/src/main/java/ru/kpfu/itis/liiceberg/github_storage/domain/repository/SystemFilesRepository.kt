@@ -7,8 +7,8 @@ interface SystemFilesRepository {
     suspend fun getRootFolderRelativePath(): String
     suspend fun saveRootFolderPath(path: String)
     suspend fun saveFile(path: String, content: String?, isFolder: Boolean)
-    suspend fun saveAll(newFiles: Set<String>)
+    suspend fun saveAll(newFiles: Map<String, String>)
     suspend fun getRoot() : File
     suspend fun getFolderRelativePath(path: String) : String
-    suspend fun lastCommitFiles(): Set<String>?
+    suspend fun getSavedFiles(): Set<String>?
 }

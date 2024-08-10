@@ -49,10 +49,6 @@ class GitHubRepositoryImpl @Inject constructor(
 
         val tree = gitHubApi.getAllFiles(owner!!, repository!!)
 
-        filesRepository.saveAll(
-            tree.tree.filter { it.type == NodeType.BLOB }.map { node -> node.path }.toSet()
-        )
-
         performTreeTraversal(tree)
     }
 
@@ -72,11 +68,20 @@ class GitHubRepositoryImpl @Inject constructor(
     }
 
     private suspend fun performTreeTraversal(tree: GitHubTree) {
+        val files = mutableMapOf<String, String>()
+        tree.tree
+            .filter { it.type == NodeType.BLOB }
+            .map { node ->
+                files[node.path] = getFileContent(node.url)
+            }
+
+        filesRepository.saveAll(files)
+
         tree.tree.forEach { node ->
             val isFolder = node.type == NodeType.TREE
             var content: String? = null
             if (isFolder.not()) {
-                content = getFileContent(node.url)
+                content = files[node.path]
             }
             filesRepository.saveFile(path = node.path, content = content, isFolder = isFolder)
         }
@@ -128,7 +133,7 @@ class GitHubRepositoryImpl @Inject constructor(
 
     private suspend fun verifyDeletedFiles() {
         val existingFiles = nodes.map { node -> (node as? CreateTreeRequestNodeUpdate)?.path }.toSet()
-        filesRepository.lastCommitFiles()?.forEach {
+        filesRepository.getSavedFiles()?.forEach {
             if (existingFiles.contains(it).not()) {
                 nodes.add(CreateTreeRequestNodeDelete(
                     path = it,

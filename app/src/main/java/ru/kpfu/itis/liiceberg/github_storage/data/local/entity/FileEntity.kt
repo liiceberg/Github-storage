@@ -4,9 +4,10 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "directory", indices = [Index(value = ["location"], unique = true)])
-data class DirectoryRootEntity(
+@Entity(tableName = "files", indices = [Index(value = ["directory", "path"], unique = true)])
+data class FileEntity(
     @PrimaryKey(autoGenerate = true) val id: Int? = null,
-    val location: String,
-    val files: Set<String>
+    val directory: String,
+    val path: String,
+    val content: String
 )

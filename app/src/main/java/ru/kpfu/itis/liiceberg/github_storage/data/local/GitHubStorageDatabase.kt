@@ -2,12 +2,10 @@ package ru.kpfu.itis.liiceberg.github_storage.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import ru.kpfu.itis.liiceberg.github_storage.data.local.dao.DirectoryRootDao
-import ru.kpfu.itis.liiceberg.github_storage.data.local.entity.DirectoryRootEntity
+import ru.kpfu.itis.liiceberg.github_storage.data.local.dao.FileDao
+import ru.kpfu.itis.liiceberg.github_storage.data.local.entity.FileEntity
 
-@Database(entities = [DirectoryRootEntity::class], version = 1)
-@TypeConverters(Converters::class)
+@Database(entities = [FileEntity::class], version = 1)
 abstract class GitHubStorageDatabase : RoomDatabase() {
-    abstract val directoryRootDao: DirectoryRootDao
+    abstract val fileDao: FileDao
 }
