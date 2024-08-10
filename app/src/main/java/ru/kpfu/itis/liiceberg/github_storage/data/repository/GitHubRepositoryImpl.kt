@@ -1,6 +1,5 @@
 package ru.kpfu.itis.liiceberg.github_storage.data.repository
 
-import android.util.Log
 import androidx.datastore.DataStore
 import androidx.datastore.preferences.Preferences
 import androidx.datastore.preferences.edit
@@ -21,6 +20,8 @@ import ru.kpfu.itis.liiceberg.github_storage.util.PrefsKeys
 import ru.kpfu.itis.liiceberg.github_storage.util.decodeFromBase64
 import java.io.File
 import java.net.URI
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class GitHubRepositoryImpl @Inject constructor(
@@ -64,9 +65,10 @@ class GitHubRepositoryImpl @Inject constructor(
         val createTreeRequest = CreateTreeRequest(baseTreeSha, buildGitHubTree())
         val newTreeSha = gitHubApi.createTree(owner!!, repository!!, createTreeRequest).sha
         val createCommitRequest =
-            CreateCommitRequest(listOf(lastObjectSha), newTreeSha, "update files")
+            CreateCommitRequest(listOf(lastObjectSha), newTreeSha, getCommitMessage())
         val commitSha = gitHubApi.createCommit(owner!!, repository!!, createCommitRequest).sha
         gitHubApi.updateRefs(owner!!, repository!!, sha = UpdateBranchRequest(commitSha))
+        pull()
     }
 
     private suspend fun performTreeTraversal(tree: GitHubTree) {
@@ -98,6 +100,7 @@ class GitHubRepositoryImpl @Inject constructor(
 
     private suspend fun buildGitHubTree(): List<CreateTreeRequestNode> {
         val root = filesRepository.getRoot()
+        nodes.clear()
         bypass(root)
         verifyDeletedFiles()
         return nodes
@@ -105,7 +108,6 @@ class GitHubRepositoryImpl @Inject constructor(
 
     private suspend fun bypass(dir: File) {
         dir.listFiles()?.forEach {
-            Log.i("TEST BYPASS", it.path)
             if (it.isDirectory) {
                 bypass(it)
             } else {
@@ -125,7 +127,7 @@ class GitHubRepositoryImpl @Inject constructor(
     }
 
     private suspend fun verifyDeletedFiles() {
-        val existingFiles = nodes.map { node -> (node as CreateTreeRequestNodeUpdate).path }.toSet()
+        val existingFiles = nodes.map { node -> (node as? CreateTreeRequestNodeUpdate)?.path }.toSet()
         filesRepository.lastCommitFiles()?.forEach {
             if (existingFiles.contains(it).not()) {
                 nodes.add(CreateTreeRequestNodeDelete(
@@ -135,5 +137,9 @@ class GitHubRepositoryImpl @Inject constructor(
                 ))
             }
         }
+    }
+
+    private fun getCommitMessage() : String {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("d MMMM yy г., HH:mm"))
     }
 }

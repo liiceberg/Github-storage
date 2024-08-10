@@ -1,14 +1,14 @@
 package ru.kpfu.itis.liiceberg.github_storage.presentation.theme
 
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -24,20 +24,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import ru.kpfu.itis.liiceberg.github_storage.presentation.navigation.BottomNavItems
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JetTopAppBar(text: String, modifier: Modifier = Modifier) {
-    TopAppBar(
-        title = {
-            Text(
-                text = text,
-                modifier = modifier,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight(600),
-                style = MaterialTheme.typography.titleLarge
-            )
-        },
-        modifier = modifier,
+fun JetTopAppBar(text: String) {
+    Text(
+        text = text,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp),
+        textAlign = TextAlign.Center,
+        fontWeight = FontWeight(600),
+        style = MaterialTheme.typography.titleLarge
     )
 }
 

@@ -93,9 +93,7 @@ private fun MainView(
 ) {
     Column(Modifier.fillMaxSize()) {
         JetTopAppBar(
-            text = stringResource(id = R.string.main_page_title),
-            modifier = Modifier
-                .fillMaxWidth()
+            text = stringResource(id = R.string.main_page_title)
         )
         InfoContainer(
             repository,

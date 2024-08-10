@@ -2,7 +2,6 @@ package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -110,9 +109,7 @@ private fun SettingsView(
 ) {
     Column(Modifier.fillMaxSize()) {
         JetTopAppBar(
-            text = stringResource(id = R.string.settings_page_title),
-            modifier = Modifier
-                .fillMaxWidth()
+            text = stringResource(id = R.string.settings_page_title)
         )
         Box(Modifier.weight(1f)) {
             FieldsContainer(
@@ -163,8 +160,7 @@ private fun FieldsContainer(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(16.dp)
     ) {
         Field(
             text = repository,
