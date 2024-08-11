@@ -1,5 +1,6 @@
 package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.main
 
+import ru.kpfu.itis.liiceberg.github_storage.domain.model.GitHubActionItem
 import ru.kpfu.itis.liiceberg.github_storage.presentation.base.UiState
 import java.time.LocalDate
 

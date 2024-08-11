@@ -1,5 +1,6 @@
-package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.main
+package ru.kpfu.itis.liiceberg.github_storage.domain.model
 
+import ru.kpfu.itis.liiceberg.github_storage.data.model.GitHubAction
 import java.time.LocalDate
 
 
@@ -8,10 +9,6 @@ data class GitHubActionItem(
     val date: LocalDate,
     val statistic: ActionStatistic
 )
-
-enum class GitHubAction {
-    PULL, PUSH
-}
 
 data class ActionStatistic(
     val plusStr: Int,

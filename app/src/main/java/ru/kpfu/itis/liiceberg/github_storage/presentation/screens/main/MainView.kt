@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,8 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.kpfu.itis.liiceberg.github_storage.R
+import ru.kpfu.itis.liiceberg.github_storage.data.model.GitHubAction
+import ru.kpfu.itis.liiceberg.github_storage.domain.model.GitHubActionItem
 import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.GithubstorageTheme
 import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.JetTopAppBar
 import ru.kpfu.itis.liiceberg.github_storage.util.formatDate
@@ -327,6 +330,7 @@ private fun hasWriteStoragePermission(ctx: Context): Boolean {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.R)
 private fun requestPermission(context: Context) {
     val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
     intent.addCategory("android.intent.category.DEFAULT")

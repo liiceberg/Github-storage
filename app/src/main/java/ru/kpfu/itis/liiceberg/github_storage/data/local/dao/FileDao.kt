@@ -13,4 +13,7 @@ interface FileDao {
 
     @Query("select * from files where directory = :directory")
     fun getAll(directory: String) : List<FileEntity>?
+
+    @Query("delete from files where path = :path and directory = :directory")
+    fun delete(path: String, directory: String)
 }

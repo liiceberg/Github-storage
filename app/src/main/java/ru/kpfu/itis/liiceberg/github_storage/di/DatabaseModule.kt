@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ru.kpfu.itis.liiceberg.github_storage.data.local.GitHubStorageDatabase
 import ru.kpfu.itis.liiceberg.github_storage.data.local.dao.FileDao
+import ru.kpfu.itis.liiceberg.github_storage.data.local.dao.StatisticDao
 import ru.kpfu.itis.liiceberg.github_storage.util.Keys
 import javax.inject.Singleton
 
@@ -26,5 +27,8 @@ class DatabaseModule {
     }
 
     @Provides
-    fun provideDirectoryDao(db: GitHubStorageDatabase) : FileDao = db.fileDao
+    fun provideFileDao(db: GitHubStorageDatabase) : FileDao = db.fileDao
+
+    @Provides
+    fun provideStatisticDao(db: GitHubStorageDatabase) : StatisticDao = db.statisticDao
 }

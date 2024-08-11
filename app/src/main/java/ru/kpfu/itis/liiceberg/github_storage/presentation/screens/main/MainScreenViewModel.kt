@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetFolderUseCase
+import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetHistoryUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetRepositoryUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetTokenUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GitHubPullUseCase
@@ -18,6 +19,7 @@ class MainScreenViewModel @Inject constructor(
     private val getTokenUseCase: GetTokenUseCase,
     private val gitHubPullUseCase: GitHubPullUseCase,
     private val gitHubPushUseCase: GitHubPushUseCase,
+    private val getHistoryUseCase: GetHistoryUseCase,
 ) : BaseViewModel<MainScreenState, MainScreenEvent, MainScreenAction>(
     MainScreenState()
 ) {
@@ -38,7 +40,8 @@ class MainScreenViewModel @Inject constructor(
                 viewState.copy(
                     repository = getRepositoryUseCase.invoke(),
                     folderPath = getFolderUseCase.invoke(absolute = true),
-                    accessDate = getTokenUseCase.invoke()?.activePeriod
+                    accessDate = getTokenUseCase.invoke()?.activePeriod,
+                    history = getHistoryUseCase.invoke()
                 )
         }
     }
@@ -47,7 +50,7 @@ class MainScreenViewModel @Inject constructor(
         viewModelScope.launch {
             viewState = viewState.copy(pushLoading = true)
             gitHubPushUseCase.invoke()
-            viewState = viewState.copy(pushLoading = false)
+            viewState = viewState.copy(pushLoading = false, history = getHistoryUseCase.invoke())
         }
     }
 
@@ -55,7 +58,7 @@ class MainScreenViewModel @Inject constructor(
         viewModelScope.launch {
             viewState = viewState.copy(pullLoading = true)
             gitHubPullUseCase.invoke()
-            viewState = viewState.copy(pullLoading = false)
+            viewState = viewState.copy(pullLoading = false, history = getHistoryUseCase.invoke())
         }
     }
 }

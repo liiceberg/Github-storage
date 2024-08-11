@@ -42,20 +42,36 @@ class SystemFilesRepositoryImpl @Inject constructor(
 
     }
 
-    override suspend fun getSavedFiles(): Set<String>? {
+    override suspend fun getSavedFilesNames(): Set<String>? {
         val root = getRootFileAbsolutePath()
         return fileDao.getAll(root)?.map { it.path }?.toSet()
+    }
+
+    override suspend fun getSavedFilesWithContent(): Map<String, String> {
+        val root = getRootFileAbsolutePath()
+        val map = mutableMapOf<String, String>()
+        fileDao.getAll(root)?.forEach { file -> map[file.path] = file.content }
+        return map
+    }
+
+    override suspend fun deleteFile(directory: String, path: String) {
+        fileDao.delete(path = path, directory = directory)
+    }
+
+    override suspend fun saveFile(directory: String, path: String, content: String) {
+        fileDao.save(FileEntity(directory = directory, path = path, content = content))
     }
 
     override suspend fun saveAll(newFiles: Map<String, String>) {
         val root = getRootFileAbsolutePath()
 
-        val last = getSavedFiles()
+        val last = getSavedFilesNames()
 
         last?.forEach { file ->
             if (newFiles.keys.contains(file).not()) {
                 val deleteFile = "${getRootFileAbsolutePath()}${File.separator}$file"
                 File(deleteFile).deleteRecursively()
+                fileDao.delete(file, root)
             }
         }
 
@@ -81,10 +97,8 @@ class SystemFilesRepositoryImpl @Inject constructor(
     }
 
     private fun saveFile(file: File, content: String?) {
-        if (file.exists()) {
-
-        } else {
-            file.createNewFile().toString()
+        if (file.exists().not()) {
+            file.createNewFile()
         }
         file.writeText(content ?: "")
     }
