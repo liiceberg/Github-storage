@@ -1,14 +1,26 @@
 package ru.kpfu.itis.liiceberg.github_storage.data.repository
 
+import android.content.Context
+import androidx.annotation.StringRes
 import androidx.datastore.DataStore
 import androidx.datastore.preferences.Preferences
 import androidx.datastore.preferences.edit
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import ru.kpfu.itis.liiceberg.github_storage.R
+import ru.kpfu.itis.liiceberg.github_storage.data.exception.AccessDeniedException
+import ru.kpfu.itis.liiceberg.github_storage.data.exception.ConflictException
+import ru.kpfu.itis.liiceberg.github_storage.data.exception.ConnectionException
+import ru.kpfu.itis.liiceberg.github_storage.data.exception.ForbiddenException
+import ru.kpfu.itis.liiceberg.github_storage.data.exception.NetworkException
+import ru.kpfu.itis.liiceberg.github_storage.data.exception.RepositoryNotFoundException
 import ru.kpfu.itis.liiceberg.github_storage.data.local.dao.StatisticDao
 import ru.kpfu.itis.liiceberg.github_storage.data.local.entity.StatisticEntity
 import ru.kpfu.itis.liiceberg.github_storage.data.local.mapper.StatisticMapper
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.ApiHandler
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.GitHubApi
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.ResultWrapper
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.mapper.GitStatusMapper
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitHubAction
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitStatus
@@ -18,6 +30,7 @@ import ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.request.CreateTree
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.request.CreateTreeRequestNodeDelete
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.request.CreateTreeRequestNodeUpdate
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.request.UpdateBranchRequest
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.response.GitHubTree
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.response.NodeType
 import ru.kpfu.itis.liiceberg.github_storage.domain.model.GitHubActionItem
 import ru.kpfu.itis.liiceberg.github_storage.domain.repository.GitHubRepository
@@ -36,7 +49,9 @@ class GitHubRepositoryImpl @Inject constructor(
     private val filesRepository: SystemFilesRepository,
     private val statisticDao: StatisticDao,
     private val statisticMapper: StatisticMapper,
-    private val gitStatusMapper: GitStatusMapper
+    private val gitStatusMapper: GitStatusMapper,
+    private val apiHandler: ApiHandler,
+    @ApplicationContext private val context: Context
 ) : GitHubRepository {
 
     private var owner: String? = null
@@ -61,8 +76,17 @@ class GitHubRepositoryImpl @Inject constructor(
     override suspend fun pull() {
         parseRepositoryUrl()
         if (owner.isNullOrEmpty() || repository.isNullOrEmpty()) return
-        val tree = gitHubApi.getAllFiles(owner!!, repository!!)
 
+        val result = apiHandler.makeSafeApiCall { gitHubApi.getAllFiles(owner!!, repository!!) }
+
+        when (result) {
+            is ResultWrapper.NetworkError -> throw networkException()
+            is ResultWrapper.GenericError -> throw genericException(result.code, result.error)
+            is ResultWrapper.Success -> makePull(result.value)
+        }
+    }
+
+    private suspend fun makePull(tree: GitHubTree) {
         val files = mutableMapOf<String, String>()
         tree.tree
             .filter { it.type == NodeType.BLOB }
@@ -88,14 +112,70 @@ class GitHubRepositoryImpl @Inject constructor(
         parseRepositoryUrl()
         if (owner.isNullOrEmpty() || repository.isNullOrEmpty()) return
 
-        val lastObjectSha = gitHubApi.getHeads(owner!!, repository!!).lastObject.sha
-        val baseTreeSha = gitHubApi.getCommit(owner!!, repository!!, lastObjectSha).tree.sha
+        val getHeadsResult =
+            apiHandler.makeSafeApiCall { gitHubApi.getHeads(owner!!, repository!!) }
+        val lastObjectSha = when (getHeadsResult) {
+            is ResultWrapper.Success -> getHeadsResult.value.lastObject.sha
+            is ResultWrapper.NetworkError -> throw networkException()
+            is ResultWrapper.GenericError -> throw genericException(
+                getHeadsResult.code,
+                getHeadsResult.error
+            )
+        }
+
+        val getCommitResult =
+            apiHandler.makeSafeApiCall { gitHubApi.getCommit(owner!!, repository!!, lastObjectSha) }
+        val baseTreeSha = when (getCommitResult) {
+            is ResultWrapper.Success -> getCommitResult.value.tree.sha
+            is ResultWrapper.NetworkError -> throw networkException()
+            is ResultWrapper.GenericError -> throw genericException(
+                getCommitResult.code,
+                getCommitResult.error
+            )
+        }
+
         val createTreeRequest = CreateTreeRequest(baseTreeSha, buildGitHubTree())
-        val newTreeSha = gitHubApi.createTree(owner!!, repository!!, createTreeRequest).sha
+        val createTreeResult = apiHandler.makeSafeApiCall {
+            gitHubApi.createTree(
+                owner!!,
+                repository!!,
+                createTreeRequest
+            )
+        }
+        val newTreeSha = when (createTreeResult) {
+            is ResultWrapper.Success -> createTreeResult.value.sha
+            is ResultWrapper.NetworkError -> throw networkException()
+            is ResultWrapper.GenericError -> throw genericException(
+                createTreeResult.code,
+                createTreeResult.error
+            )
+        }
+
         val createCommitRequest =
             CreateCommitRequest(listOf(lastObjectSha), newTreeSha, getCommitMessage())
-        val commitSha = gitHubApi.createCommit(owner!!, repository!!, createCommitRequest).sha
-        gitHubApi.updateRefs(owner!!, repository!!, sha = UpdateBranchRequest(commitSha))
+        val createCommitResult = apiHandler.makeSafeApiCall {
+            gitHubApi.createCommit(
+                owner!!,
+                repository!!,
+                createCommitRequest
+            )
+        }
+        val commitSha = when (createCommitResult) {
+            is ResultWrapper.Success -> createCommitResult.value.sha
+            is ResultWrapper.NetworkError -> throw networkException()
+            is ResultWrapper.GenericError -> throw genericException(
+                createCommitResult.code,
+                createCommitResult.error
+            )
+        }
+
+        apiHandler.makeSafeApiCall {
+            gitHubApi.updateRefs(
+                owner!!,
+                repository!!,
+                sha = UpdateBranchRequest(commitSha)
+            )
+        }
     }
 
     override suspend fun getFilesStatus(): GitStatus {
@@ -107,7 +187,12 @@ class GitHubRepositoryImpl @Inject constructor(
     }
 
     private suspend fun getFileContent(url: String): String {
-        return gitHubApi.getFile(url).content.decodeFromBase64()
+        val result = apiHandler.makeSafeApiCall { gitHubApi.getFile(url) }
+        when (result) {
+            is ResultWrapper.Success -> return result.value.content.decodeFromBase64()
+            is ResultWrapper.NetworkError -> throw networkException()
+            is ResultWrapper.GenericError -> throw genericException(result.code, result.error)
+        }
     }
 
     private suspend fun parseRepositoryUrl() {
@@ -175,4 +260,17 @@ class GitHubRepositoryImpl @Inject constructor(
             )
         )
     }
+
+    private fun networkException() = ConnectionException(getErrorMessage(R.string.connection_error))
+
+    private fun genericException(code: Int?, message: String?) = when (code) {
+        401 -> AccessDeniedException(getErrorMessage(R.string.access_denied_error))
+        403 -> ForbiddenException(getErrorMessage(R.string.forbidden_error))
+        404 -> RepositoryNotFoundException(getErrorMessage(R.string.page_not_found_error))
+        409 -> ConflictException(getErrorMessage(R.string.conflict_error))
+        else -> NetworkException(message ?: getErrorMessage(R.string.unknown_network_error))
+    }
+
+    private fun getErrorMessage(@StringRes id: Int) = context.resources.getString(id)
+
 }

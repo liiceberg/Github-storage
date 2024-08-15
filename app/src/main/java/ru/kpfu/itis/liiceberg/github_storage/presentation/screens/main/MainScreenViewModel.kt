@@ -1,8 +1,11 @@
 package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.main
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
+import ru.kpfu.itis.liiceberg.github_storage.R
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitStatus
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetChangesUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetFolderUseCase
@@ -22,7 +25,8 @@ class MainScreenViewModel @Inject constructor(
     private val gitHubPullUseCase: GitHubPullUseCase,
     private val gitHubPushUseCase: GitHubPushUseCase,
     private val getHistoryUseCase: GetHistoryUseCase,
-    private val getChangesUseCase: GetChangesUseCase
+    private val getChangesUseCase: GetChangesUseCase,
+    @ApplicationContext private val context: Context
 ) : BaseViewModel<MainScreenState, MainScreenEvent, MainScreenAction>(
     MainScreenState()
 ) {
@@ -31,7 +35,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     override fun obtainEvent(event: MainScreenEvent) {
-        when(event) {
+        when (event) {
             MainScreenEvent.OnPullClicked -> pull()
             MainScreenEvent.OnPushClicked -> push()
         }
@@ -44,25 +48,51 @@ class MainScreenViewModel @Inject constructor(
                     repository = getRepositoryUseCase.invoke(),
                     folderPath = getFolderUseCase.invoke(absolute = true),
                     accessDate = getTokenUseCase.invoke()?.activePeriod,
-                    history = getHistoryUseCase.invoke(),
-                    status = getChangesUseCase.invoke()
+                    history = getHistoryUseCase.invoke()
                 )
+            viewState = viewState.copy(status = getChangesUseCase.invoke())
         }
     }
 
     private fun push() {
         viewModelScope.launch {
-            viewState = viewState.copy(pushLoading = true)
-            gitHubPushUseCase.invoke()
-            viewState = viewState.copy(pushLoading = false, history = getHistoryUseCase.invoke(), status = GitStatus.empty())
+            try {
+                viewState = viewState.copy(pushLoading = true)
+                gitHubPushUseCase.invoke()
+                viewState = viewState.copy(
+                    pushLoading = false,
+                    history = getHistoryUseCase.invoke(),
+                    status = GitStatus.empty()
+                )
+            } catch (ex: Exception) {
+                viewAction = MainScreenAction.ShowError(
+                    ex.message ?: context.resources.getString(R.string.unknown_error)
+                )
+                viewState = viewState.copy(
+                    pushLoading = false,
+                )
+            }
         }
     }
 
     private fun pull() {
         viewModelScope.launch {
-            viewState = viewState.copy(pullLoading = true)
-            gitHubPullUseCase.invoke()
-            viewState = viewState.copy(pullLoading = false, history = getHistoryUseCase.invoke(), status = GitStatus.empty())
+            try {
+                viewState = viewState.copy(pullLoading = true)
+                gitHubPullUseCase.invoke()
+                viewState = viewState.copy(
+                    pullLoading = false,
+                    history = getHistoryUseCase.invoke(),
+                    status = GitStatus.empty()
+                )
+            } catch (ex: Exception) {
+                viewAction = MainScreenAction.ShowError(
+                    ex.message ?: context.resources.getString(R.string.unknown_error)
+                )
+                viewState = viewState.copy(
+                    pullLoading = false,
+                )
+            }
         }
     }
 }

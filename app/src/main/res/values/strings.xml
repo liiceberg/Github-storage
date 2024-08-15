@@ -34,4 +34,12 @@
     <string name="git_status_created">Создано: %s</string>
     <string name="git_status_deleted">Удалено: %s</string>
 
+    <string name="unknown_error">Произошла неизвестная ошибка</string>
+    <string name="connection_error">Нет подключения к сети</string>
+    <string name="unknown_network_error">Не удалось выполнить запрос</string>
+    <string name="page_not_found_error">Репозиторий не найден</string>
+    <string name="access_denied_error">Неверный токен</string>
+    <string name="forbidden_error">Доступ запрещен</string>
+    <string name="conflict_error">Не удается выполнить запрос из-за возникающего конфликта</string>
+
 </resources>

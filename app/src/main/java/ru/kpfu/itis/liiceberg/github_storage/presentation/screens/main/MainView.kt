@@ -183,12 +183,14 @@ private fun InfoContainer(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            val enabled = repository.isNotEmpty() && folderPath.isNotEmpty()
             Box(Modifier.weight(1f)) {
                 JetButton(
                     text = stringResource(id = R.string.push_btn),
                     icon = R.drawable.push,
                     onPush,
-                    pushLoading
+                    pushLoading,
+                    enabled
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -197,7 +199,8 @@ private fun InfoContainer(
                     text = stringResource(id = R.string.pull_btn),
                     icon = R.drawable.pull,
                     onPull,
-                    pullLoading
+                    pullLoading,
+                    enabled
                 )
             }
         }
@@ -234,7 +237,8 @@ private fun JetButton(
     text: String,
     @DrawableRes icon: Int,
     onButtonClick: () -> Unit,
-    isLoad: Boolean
+    isLoad: Boolean,
+    enabled: Boolean
 ) {
     val ctx = LocalContext.current
     val permissionDeniedText = stringResource(id = R.string.permission_denied)
@@ -262,7 +266,7 @@ private fun JetButton(
             }
         },
         modifier = Modifier.fillMaxWidth(),
-        enabled = isLoad.not()
+        enabled = enabled && isLoad.not()
     ) {
         if (isLoad) {
             CircularProgressIndicator(

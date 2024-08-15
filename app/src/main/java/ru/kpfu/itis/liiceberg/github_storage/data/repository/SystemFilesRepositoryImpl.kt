@@ -21,7 +21,12 @@ class SystemFilesRepositoryImpl @Inject constructor(
 
     override suspend fun getRootFileAbsolutePath(): String {
         val root = Environment.getExternalStorageDirectory().absolutePath
-        return "$root${File.separator}${getRootFolderRelativePath()}"
+        val folder = getRootFolderRelativePath()
+        return if (folder.isNotEmpty()) {
+            "$root${File.separator}$folder"
+        } else {
+            ""
+        }
     }
 
     override suspend fun getRootFolderRelativePath(): String {
