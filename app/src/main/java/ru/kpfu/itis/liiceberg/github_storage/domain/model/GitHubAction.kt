@@ -1,6 +1,6 @@
 package ru.kpfu.itis.liiceberg.github_storage.domain.model
 
-import ru.kpfu.itis.liiceberg.github_storage.data.model.GitHubAction
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitHubAction
 import java.time.LocalDate
 
 

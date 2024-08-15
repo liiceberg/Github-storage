@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -50,10 +51,12 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.kpfu.itis.liiceberg.github_storage.R
-import ru.kpfu.itis.liiceberg.github_storage.data.model.GitHubAction
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitHubAction
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitStatus
 import ru.kpfu.itis.liiceberg.github_storage.domain.model.GitHubActionItem
 import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.GithubstorageTheme
 import ru.kpfu.itis.liiceberg.github_storage.presentation.theme.JetTopAppBar
+import ru.kpfu.itis.liiceberg.github_storage.util.convertToString
 import ru.kpfu.itis.liiceberg.github_storage.util.formatDate
 import java.time.LocalDate
 
@@ -62,7 +65,18 @@ import java.time.LocalDate
 @Composable
 private fun MainViewPreview() {
     GithubstorageTheme {
-        MainView("github.com/lldan", "path", LocalDate.now(), {}, {}, listOf(), true, false)
+        MainView("github.com/lldan",
+            "path",
+            LocalDate.now(),
+            {},
+            {},
+            listOf(),
+            true,
+            false,
+            GitStatus(
+                listOf("path1, path2"), listOf("path1, path2"), listOf("path1, path2")
+            )
+        )
     }
 }
 
@@ -80,14 +94,20 @@ fun MainView(
         onPush = { viewModel.obtainEvent(MainScreenEvent.OnPushClicked) },
         history = state.history,
         pullLoading = state.pullLoading,
-        pushLoading = state.pushLoading
+        pushLoading = state.pushLoading,
+        status = state.status
     )
 
     val context = LocalContext.current
     LaunchedEffect(true) {
         viewModel.viewActions().collect { action ->
-            when(action) {
-                is MainScreenAction.ShowError -> Toast.makeText(context, action.message, Toast.LENGTH_SHORT).show()
+            when (action) {
+                is MainScreenAction.ShowError -> Toast.makeText(
+                    context,
+                    action.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+
                 else -> {}
             }
         }
@@ -105,6 +125,7 @@ private fun MainView(
     history: List<GitHubActionItem>,
     pullLoading: Boolean,
     pushLoading: Boolean,
+    status: GitStatus
 ) {
     Column(Modifier.fillMaxSize()) {
         JetTopAppBar(
@@ -124,6 +145,7 @@ private fun MainView(
             modifier = Modifier.padding(horizontal = 16.dp),
             style = MaterialTheme.typography.titleLarge
         )
+        Status(status)
         HistoryList(list = history)
     }
 
@@ -261,7 +283,49 @@ private fun JetButton(
 }
 
 @Composable
-fun HistoryList(list: List<GitHubActionItem>) {
+private fun Status(status: GitStatus) {
+    val text = buildAnnotatedString {
+        val separator = "    "
+        if (status.modified.isNotEmpty()) {
+            append(
+                stringResource(
+                    id = R.string.git_status_modified,
+                    status.modified.convertToString(separator)
+                )
+            )
+            append("\n")
+        }
+        if (status.created.isNotEmpty()) {
+            withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
+                append(
+                    stringResource(
+                        id = R.string.git_status_created,
+                        status.created.convertToString(separator)
+                    )
+                )
+                append("\n")
+            }
+        }
+        if (status.deleted.isNotEmpty()) {
+            withStyle(SpanStyle(MaterialTheme.colorScheme.error)) {
+                append(
+                    stringResource(
+                        id = R.string.git_status_deleted,
+                        status.deleted.convertToString(separator)
+                    )
+                )
+            }
+        }
+    }
+    LazyRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        item {
+            Text(text = text, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+@Composable
+private fun HistoryList(list: List<GitHubActionItem>) {
     LazyColumn {
         items(list.size) {
             ActionHistoryItem(list[it])

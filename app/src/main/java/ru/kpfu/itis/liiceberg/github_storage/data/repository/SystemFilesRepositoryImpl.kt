@@ -19,8 +19,6 @@ class SystemFilesRepositoryImpl @Inject constructor(
     private val fileDao: FileDao,
 ) : SystemFilesRepository {
 
-    override suspend fun getRoot(): File = File(getRootFileAbsolutePath())
-
     override suspend fun getRootFileAbsolutePath(): String {
         val root = Environment.getExternalStorageDirectory().absolutePath
         return "$root${File.separator}${getRootFolderRelativePath()}"
@@ -58,8 +56,10 @@ class SystemFilesRepositoryImpl @Inject constructor(
         fileDao.delete(path = path, directory = directory)
     }
 
-    override suspend fun saveFile(directory: String, path: String, content: String) {
-        fileDao.save(FileEntity(directory = directory, path = path, content = content))
+    override suspend fun saveFiles(directory: String, files: Map<String, String>) {
+        files.forEach { (path, content) ->
+            fileDao.save(FileEntity(directory = directory, path = path, content = content))
+        }
     }
 
     override suspend fun saveAll(newFiles: Map<String, String>) {
@@ -77,6 +77,25 @@ class SystemFilesRepositoryImpl @Inject constructor(
 
         newFiles.forEach { file ->
             fileDao.save(FileEntity(directory = root, path = file.key, content = file.value))
+        }
+    }
+
+    private val files = mutableMapOf<String, String>()
+
+    override suspend fun getExistingFilesWithContent(): Map<String, String> {
+        val root = File(getRootFileAbsolutePath())
+        files.clear()
+        bypass(root)
+        return files
+    }
+
+    private suspend fun bypass(dir: File) {
+        dir.listFiles()?.forEach { file ->
+            if (file.isDirectory) {
+                bypass(file)
+            } else {
+                files[getFolderRelativePath(file.path)] = file.readText()
+            }
         }
     }
 

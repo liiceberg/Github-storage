@@ -3,6 +3,8 @@ package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.main
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitStatus
+import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetChangesUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetFolderUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetHistoryUseCase
 import ru.kpfu.itis.liiceberg.github_storage.domain.usecase.GetRepositoryUseCase
@@ -20,6 +22,7 @@ class MainScreenViewModel @Inject constructor(
     private val gitHubPullUseCase: GitHubPullUseCase,
     private val gitHubPushUseCase: GitHubPushUseCase,
     private val getHistoryUseCase: GetHistoryUseCase,
+    private val getChangesUseCase: GetChangesUseCase
 ) : BaseViewModel<MainScreenState, MainScreenEvent, MainScreenAction>(
     MainScreenState()
 ) {
@@ -41,7 +44,8 @@ class MainScreenViewModel @Inject constructor(
                     repository = getRepositoryUseCase.invoke(),
                     folderPath = getFolderUseCase.invoke(absolute = true),
                     accessDate = getTokenUseCase.invoke()?.activePeriod,
-                    history = getHistoryUseCase.invoke()
+                    history = getHistoryUseCase.invoke(),
+                    status = getChangesUseCase.invoke()
                 )
         }
     }
@@ -50,7 +54,7 @@ class MainScreenViewModel @Inject constructor(
         viewModelScope.launch {
             viewState = viewState.copy(pushLoading = true)
             gitHubPushUseCase.invoke()
-            viewState = viewState.copy(pushLoading = false, history = getHistoryUseCase.invoke())
+            viewState = viewState.copy(pushLoading = false, history = getHistoryUseCase.invoke(), status = GitStatus.empty())
         }
     }
 
@@ -58,7 +62,7 @@ class MainScreenViewModel @Inject constructor(
         viewModelScope.launch {
             viewState = viewState.copy(pullLoading = true)
             gitHubPullUseCase.invoke()
-            viewState = viewState.copy(pullLoading = false, history = getHistoryUseCase.invoke())
+            viewState = viewState.copy(pullLoading = false, history = getHistoryUseCase.invoke(), status = GitStatus.empty())
         }
     }
 }

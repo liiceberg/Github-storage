@@ -1,7 +1,7 @@
 package ru.kpfu.itis.liiceberg.github_storage.data.local.mapper
 
 import ru.kpfu.itis.liiceberg.github_storage.data.local.entity.StatisticEntity
-import ru.kpfu.itis.liiceberg.github_storage.data.model.GitHubAction
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitHubAction
 import ru.kpfu.itis.liiceberg.github_storage.domain.model.ActionStatistic
 import ru.kpfu.itis.liiceberg.github_storage.domain.model.GitHubActionItem
 import java.time.Instant

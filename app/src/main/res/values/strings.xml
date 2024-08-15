@@ -30,4 +30,8 @@
     <string name="failure_text">Не удалось сохранить данные</string>
     <string name="permission_denied">Требуется разрашение на чтение и запись файлов</string>
 
+    <string name="git_status_modified">Изменено: %s</string>
+    <string name="git_status_created">Создано: %s</string>
+    <string name="git_status_deleted">Удалено: %s</string>
+
 </resources>

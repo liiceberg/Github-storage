@@ -8,8 +8,10 @@ import kotlinx.coroutines.flow.map
 import ru.kpfu.itis.liiceberg.github_storage.data.local.dao.StatisticDao
 import ru.kpfu.itis.liiceberg.github_storage.data.local.entity.StatisticEntity
 import ru.kpfu.itis.liiceberg.github_storage.data.local.mapper.StatisticMapper
-import ru.kpfu.itis.liiceberg.github_storage.data.model.GitHubAction
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.GitHubApi
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.mapper.GitStatusMapper
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitHubAction
+import ru.kpfu.itis.liiceberg.github_storage.data.remote.model.GitStatus
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.request.CreateCommitRequest
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.request.CreateTreeRequest
 import ru.kpfu.itis.liiceberg.github_storage.data.remote.pojo.request.CreateTreeRequestNode
@@ -23,7 +25,6 @@ import ru.kpfu.itis.liiceberg.github_storage.domain.repository.SystemFilesReposi
 import ru.kpfu.itis.liiceberg.github_storage.util.FilesComparator
 import ru.kpfu.itis.liiceberg.github_storage.util.PrefsKeys
 import ru.kpfu.itis.liiceberg.github_storage.util.decodeFromBase64
-import java.io.File
 import java.net.URI
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -34,7 +35,8 @@ class GitHubRepositoryImpl @Inject constructor(
     private val gitHubApi: GitHubApi,
     private val filesRepository: SystemFilesRepository,
     private val statisticDao: StatisticDao,
-    private val statisticMapper: StatisticMapper
+    private val statisticMapper: StatisticMapper,
+    private val gitStatusMapper: GitStatusMapper
 ) : GitHubRepository {
 
     private var owner: String? = null
@@ -96,6 +98,14 @@ class GitHubRepositoryImpl @Inject constructor(
         gitHubApi.updateRefs(owner!!, repository!!, sha = UpdateBranchRequest(commitSha))
     }
 
+    override suspend fun getFilesStatus(): GitStatus {
+        val comparator = FilesComparator(
+            filesRepository.getSavedFilesWithContent(),
+            filesRepository.getExistingFilesWithContent()
+        )
+        return gitStatusMapper.mapToGitStatus(comparator.all())
+    }
+
     private suspend fun getFileContent(url: String): String {
         return gitHubApi.getFile(url).content.decodeFromBase64()
     }
@@ -110,55 +120,21 @@ class GitHubRepositoryImpl @Inject constructor(
             }
     }
 
-    private val nodes = mutableListOf<CreateTreeRequestNode>()
 
     private suspend fun buildGitHubTree(): List<CreateTreeRequestNode> {
-        val root = filesRepository.getRoot()
-        nodes.clear()
-        bypass(root)
+        val nodes = mutableListOf<CreateTreeRequestNode>()
+
+        val existingFiles = filesRepository.getExistingFilesWithContent()
+        saveStatistic(action = GitHubAction.PUSH, existingFiles)
+
+        existingFiles.forEach { (path, content) -> nodes.add(convertFileToNode(path, content)) }
 
         val rootPath = filesRepository.getRootFileAbsolutePath()
 
-        val files = mutableMapOf<String, String>()
-        nodes.forEach { node ->
-            (node as? CreateTreeRequestNodeUpdate)?.let {
-                files[node.path] = node.content
-            }
-        }
-        saveStatistic(action = GitHubAction.PUSH, files)
-
-        files.forEach { (path, content) -> filesRepository.saveFile(rootPath, path, content) }
-
-        verifyDeletedFiles(rootPath)
-        return nodes
-    }
-
-    private suspend fun bypass(dir: File) {
-        dir.listFiles()?.forEach {
-            if (it.isDirectory) {
-                bypass(it)
-            } else {
-                nodes.add(convertFileToNode(it))
-            }
-        }
-    }
-
-    private suspend fun convertFileToNode(file: File): CreateTreeRequestNode {
-        val path = filesRepository.getFolderRelativePath(file.path)
-        return CreateTreeRequestNodeUpdate(
-            path = path,
-            mode = NodeType.BLOB.mode,
-            type = NodeType.BLOB.toString(),
-            content = file.readText()
-        )
-    }
-
-    private suspend fun verifyDeletedFiles(root: String) {
-        val existingFiles =
-            nodes.map { node -> (node as? CreateTreeRequestNodeUpdate)?.path }.toSet()
+        filesRepository.saveFiles(rootPath, existingFiles)
 
         filesRepository.getSavedFilesNames()?.forEach {
-            if (existingFiles.contains(it).not()) {
+            if (existingFiles.keys.contains(it).not()) {
                 nodes.add(
                     CreateTreeRequestNodeDelete(
                         path = it,
@@ -166,9 +142,19 @@ class GitHubRepositoryImpl @Inject constructor(
                         type = NodeType.BLOB.toString()
                     )
                 )
-                filesRepository.deleteFile(directory = root, path = it)
+                filesRepository.deleteFile(directory = rootPath, path = it)
             }
         }
+        return nodes
+    }
+
+    private fun convertFileToNode(path: String, content: String): CreateTreeRequestNode {
+        return CreateTreeRequestNodeUpdate(
+            path = path,
+            mode = NodeType.BLOB.mode,
+            type = NodeType.BLOB.toString(),
+            content = content
+        )
     }
 
     private fun getCommitMessage(): String {
