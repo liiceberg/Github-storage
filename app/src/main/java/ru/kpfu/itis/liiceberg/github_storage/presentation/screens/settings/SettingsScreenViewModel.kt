@@ -97,6 +97,7 @@ class SettingsScreenViewModel @Inject constructor(
             activePeriod?.let {
                 saveTokenUseCase.invoke(AccessToken(token, activePeriod))
             }
+            viewAction = SettingsScreenAction.ShowSaveToast(true)
         }
     }
 

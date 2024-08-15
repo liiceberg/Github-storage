@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -81,7 +82,18 @@ fun MainView(
         pullLoading = state.pullLoading,
         pushLoading = state.pushLoading
     )
+
+    val context = LocalContext.current
+    LaunchedEffect(true) {
+        viewModel.viewActions().collect { action ->
+            when(action) {
+                is MainScreenAction.ShowError -> Toast.makeText(context, action.message, Toast.LENGTH_SHORT).show()
+                else -> {}
+            }
+        }
+    }
 }
+
 
 @Composable
 private fun MainView(

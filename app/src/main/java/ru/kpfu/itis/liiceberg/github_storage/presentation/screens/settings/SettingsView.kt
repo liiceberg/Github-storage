@@ -1,5 +1,6 @@
 package ru.kpfu.itis.liiceberg.github_storage.presentation.screens.settings
 
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -19,9 +20,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -88,6 +91,26 @@ fun SettingsView(viewModel: SettingsScreenViewModel = hiltViewModel()) {
         accessNotValid = state.accessNotValid,
         showDatePicker = state.showDatePickerDialog
     )
+
+    val context = LocalContext.current
+    LaunchedEffect(true) {
+        viewModel.viewActions().collect { action ->
+            when (action) {
+
+                is SettingsScreenAction.ShowSaveToast -> {
+                    val message =
+                        if (action.isSuccess) R.string.success_text else R.string.failure_text
+                    Toast.makeText(
+                        context,
+                        context.resources.getString(message),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                else -> {}
+            }
+        }
+    }
 }
 
 @Composable
